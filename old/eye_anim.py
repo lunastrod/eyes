@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 VIEWPORT = 100
-EYE_RADIUS = 12.5
+EYE_RADIUS = 12
 K = 0.5523
 
 LEFT_CENTER = (25.0, 50.0)
@@ -19,8 +19,8 @@ OPEN_PATH_TEMPLATE = (
     "C {left} {cty} {clx} {top} {cx} {top} Z"
 )
 
-CLOSED_HEIGHT = 10.0
-CLOSED_RADIUS = 5.0
+CLOSED_HEIGHT = 6.0
+CLOSED_RADIUS = CLOSED_HEIGHT/2
 
 
 def _f(v: float) -> str:
@@ -68,10 +68,12 @@ class Keyframe:
 
 @dataclass
 class Eye:
-    name: str            # "left" or "right"
+    name: str
     center: tuple
-
     _keyframes: list = field(default_factory=list, init=False)
+    curr_tx: float = 0.0
+    curr_ty: float = 0.0
+    curr_scale: float = 1.0
 
     @property
     def group_name(self) -> str:
@@ -91,25 +93,25 @@ class Eye:
         w = EYE_RADIUS * 2
         return _pill_path(cx, cy, w, CLOSED_HEIGHT, CLOSED_RADIUS)
 
-    def move(self, dx: float, dy: float, duration: float):
-        """Translate both eyes by dx, dy over duration seconds."""
+    def move(self, tx: float, ty: float, duration: float):
+        """Translate eyes from current position to tx, ty."""
         ms = int(duration * 1000)
-        if dx != 0:
+        if tx != self.curr_tx:
             self._keyframes.append(Keyframe(
                 target=self.group_name, prop="translateX",
-                value_from="0", value_to=str(dx), duration_ms=ms,
+                value_from=str(self.curr_tx), value_to=str(tx), duration_ms=ms,
             ))
-        if dy != 0:
+        if ty != self.curr_ty:
             self._keyframes.append(Keyframe(
                 target=self.group_name, prop="translateY",
-                value_from="0", value_to=str(dy), duration_ms=ms,
+                value_from=str(self.curr_ty), value_to=str(ty), duration_ms=ms,
             ))
+        self.curr_tx, self.curr_ty = tx, ty
 
     def blink(self, duration: float):
-        """Close then reopen eye, each half taking duration seconds."""
+        """Morph path from open to closed and back."""
         ms = int(duration * 1000)
-        open_p = self.open_path
-        closed_p = self.closed_path
+        open_p, closed_p = self.open_path, self.closed_path
         self._keyframes.append(Keyframe(
             target=self.path_name, prop="pathData",
             value_from=open_p, value_to=closed_p,
@@ -122,18 +124,39 @@ class Eye:
         ))
 
     def dilate(self, scale: float, duration: float):
-        """Scale eye from 1.0 to scale and back, each phase taking duration seconds."""
+        """Scale eyes from current scale to new scale and back."""
         ms = int(duration * 1000)
         for prop in ("scaleX", "scaleY"):
             self._keyframes.append(Keyframe(
                 target=self.group_name, prop=prop,
-                value_from="1.0", value_to=str(scale), duration_ms=ms,
+                value_from=str(self.curr_scale), value_to=str(scale), duration_ms=ms,
             ))
         for prop in ("scaleX", "scaleY"):
             self._keyframes.append(Keyframe(
                 target=self.group_name, prop=prop,
-                value_from=str(scale), value_to="1.0", duration_ms=ms,
+                value_from=str(scale), value_to=str(self.curr_scale), duration_ms=ms,
             ))
+
+    def wait_position(self, duration: float):
+        """Maintain the current translation for a duration."""
+        ms = int(duration * 1000)
+        self._keyframes.append(Keyframe(
+            target=self.group_name, prop="translateX",
+            value_from=str(self.curr_tx), value_to=str(self.curr_tx), duration_ms=ms,
+        ))
+        self._keyframes.append(Keyframe(
+            target=self.group_name, prop="translateY",
+            value_from=str(self.curr_ty), value_to=str(self.curr_ty), duration_ms=ms,
+        ))
+
+    def wait_shape(self, duration: float):
+        """Maintain the open path shape for a duration."""
+        ms = int(duration * 1000)
+        self._keyframes.append(Keyframe(
+            target=self.path_name, prop="pathData",
+            value_from=self.open_path, value_to=self.open_path,
+            duration_ms=ms, value_type="pathType",
+        ))
 
     def keyframes(self) -> list:
         return self._keyframes
@@ -206,8 +229,9 @@ def _group_into_steps(keyframes: list[Keyframe]) -> list[list[Keyframe]]:
     return steps
 
 
-def _animator_xml(kf: Keyframe, indent: int) -> str:
+def _animator_xml(kf: Keyframe, indent: int, repeat_count: int = 0) -> str:
     pad = "    " * indent
+    repeat_line = f'\n{pad}    android:repeatCount="{repeat_count}"' if repeat_count != 0 else ""
     return (
         f'{pad}<objectAnimator\n'
         f'{pad}    android:propertyName="{kf.prop}"\n'
@@ -215,11 +239,11 @@ def _animator_xml(kf: Keyframe, indent: int) -> str:
         f'{pad}    android:valueFrom="{kf.value_from}"\n'
         f'{pad}    android:valueTo="{kf.value_to}"\n'
         f'{pad}    android:valueType="{kf.value_type}"\n'
-        f'{pad}    android:interpolator="{kf.interpolator}"/>'
+        f'{pad}    android:interpolator="{kf.interpolator}"{repeat_line}/>'
     )
 
 
-def compile_xml(left: Eye, right: Eye, output_path: str):
+def compile_xml(left: Eye, right: Eye, output_path: str, color: str = "#FFFFFFFF"):
     lines = []
     lines.append('<animated-vector')
     lines.append('    xmlns:android="http://schemas.android.com/apk/res/android"')
@@ -241,7 +265,7 @@ def compile_xml(left: Eye, right: Eye, output_path: str):
         lines.append(f'                <path')
         lines.append(f'                    android:name="{eye.path_name}"')
         lines.append(f'                    android:pathData="{eye.open_path}"')
-        lines.append(f'                    android:fillColor="#FF000000"/>')
+        lines.append(f'                    android:fillColor="{color}"/>')
         lines.append(f'            </group>')
 
     lines.append('        </vector>')
@@ -253,13 +277,15 @@ def compile_xml(left: Eye, right: Eye, output_path: str):
             lines.append(f'    <target android:name="{target_name}">')
             lines.append(f'        <aapt:attr name="android:animation">')
             lines.append(f'            <set android:ordering="sequentially">')
-            for step in steps:
+            for i, step in enumerate(steps):
+                rc = 0
                 if len(step) == 1:
-                    lines.append(_animator_xml(step[0], indent=4))
+                    lines.append(_animator_xml(step[0], indent=4, repeat_count=rc))
                 else:
                     lines.append(f'                <set android:ordering="together">')
-                    for kf in step:
-                        lines.append(_animator_xml(kf, indent=5))
+                    for j, kf in enumerate(step):
+                        kf_rc = rc if j == len(step) - 1 else 0
+                        lines.append(_animator_xml(kf, indent=5, repeat_count=kf_rc))
                     lines.append(f'                </set>')
             lines.append(f'            </set>')
             lines.append(f'        </aapt:attr>')
@@ -283,16 +309,25 @@ if __name__ == "__main__":
     left.move(10, 0, 0.5)
     right.move(10, 0, 0.5)
 
-    compile_xml(left, right, "eyes_look_right_g.xml")
+    compile_xml(left, right, "eyes_look_right.xml")
 
     left2 = Eye("left", LEFT_CENTER)
     right2 = Eye("right", RIGHT_CENTER)
 
-    # Blink
+    # Blink (one-shot)
     left2.blink(0.1)
     right2.blink(0.1)
 
-    compile_xml(left2, right2, "eyes_blink_g.xml")
+    compile_xml(left2, right2, "eyes_blink.xml")
+
+    left4 = Eye("left", LEFT_CENTER)
+    right4 = Eye("right", RIGHT_CENTER)
+
+    # Blink (looping)
+    left4.blink(0.1)
+    right4.blink(0.1)
+
+    compile_xml(left4, right4, "eyes_blink_loop.xml")
 
     left3 = Eye("left", LEFT_CENTER)
     right3 = Eye("right", RIGHT_CENTER)
@@ -301,4 +336,4 @@ if __name__ == "__main__":
     left3.dilate(1.1, 1.0)
     right3.dilate(1.1, 1.0)
 
-    compile_xml(left3, right3, "eyes_dilate_g.xml")
+    compile_xml(left3, right3, "eyes_dilate.xml")
