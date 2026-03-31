@@ -141,10 +141,32 @@ def glitch(eye1: Eye, eye2: Eye, duration: float):
     ]
     animation_from_steps(eye1, eye2, steps, duration)
 
+def thinking(eye1: Eye, eye2: Eye, duration: float):
+    steps = [
+        (1.0, lambda t: move(eye1, eye2, Position.RIGHT_UP, t)),
+        (2.0, lambda t: wait(eye1, eye2, t)),
+        (0.5, lambda t: dilate(eye1, eye2, 0.9, t)),
+        (1.0, lambda t: wait(eye1, eye2, t)),
+        (0.5, lambda t: dilate(eye1, eye2, 1.0, t)),
+        (1.0, lambda t: move(eye1, eye2, Position.CENTER, t)),
+        (0.5, lambda t: blink(eye1, eye2, t))
+    ]
+    animation_from_steps(eye1, eye2, steps, duration)
+
+def alert(eye1: Eye, eye2: Eye, duration: float):
+    steps = [
+        (0.2, lambda t: dilate(eye1, eye2, 1.3, t)),
+        (0.2, lambda t: move(eye1, eye2, Position.UP, t)),
+        (3.0, lambda t: wait(eye1, eye2, t)),
+        (0.5, lambda t: dilate(eye1, eye2, 1.0, t)),
+        (0.5, lambda t: move(eye1, eye2, Position.CENTER, t))
+    ]
+    animation_from_steps(eye1, eye2, steps, duration)
+
 def main():
     compiler = XmlCompiler()
 
-    for animation_func in [tired, triple_blink, surprised, confused, searching, acknowledge, glitch]:
+    for animation_func in [tired, triple_blink, surprised, confused, searching, acknowledge, glitch, thinking, alert]:
         left = Eye("left", LEFT_CENTER)
         right = Eye("right", RIGHT_CENTER)
         animation_func(left, right, 5)

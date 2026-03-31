@@ -1,0 +1,74 @@
+<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/view_flipper"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:autoStart="true"
+    android:flipInterval="5000">
+
+    ``WARNING: FOR THE WIDGET LOOP TO WORK WE NEED AT LEAST 2 ANIMATIONS HERE``
+
+    <ProgressBar
+        android:id="@+id/thinking"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/thinking" />
+
+    <ProgressBar
+        android:id="@+id/alert"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/alert" />
+
+    <ProgressBar
+        android:id="@+id/glitch"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/glitch" />
+
+    <ProgressBar
+        android:id="@+id/acknowledge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/acknowledge" />
+
+    <ProgressBar
+        android:id="@+id/confused"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/confused" />
+
+    <ProgressBar
+        android:id="@+id/searching"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/searching" />
+
+    <ProgressBar
+        android:id="@+id/surprised"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/surprised" />
+
+    <ProgressBar
+        android:id="@+id/tired"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/tired" />
+
+    <ProgressBar
+        android:id="@+id/triple_blink"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/triple_blink" />
+
+</ViewFlipper>

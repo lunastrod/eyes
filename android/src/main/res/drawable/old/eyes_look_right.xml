@@ -1,0 +1,79 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:name="vector"
+            android:width="100dp"
+            android:height="100dp"
+            android:viewportWidth="100"
+            android:viewportHeight="100">
+            <group android:name="left_eye_group">
+                <path
+                    android:name="left_eye"
+                    android:pathData="M 25.0000 37.5000 L 25.0000 37.5000 C 31.9038 37.5000 37.5000 43.0962 37.5000 50.0000 L 37.5000 50.0000 C 37.5000 56.9038 31.9038 62.5000 25.0000 62.5000 L 25.0000 62.5000 C 18.0962 62.5000 12.5000 56.9038 12.5000 50.0000 L 12.5000 50.0000 C 12.5000 43.0962 18.0962 37.5000 25.0000 37.5000 Z"
+                    android:fillColor="#FF000000"/>
+            </group>
+            <group android:name="right_eye_group">
+                <path
+                    android:name="right_eye"
+                    android:pathData="M 75.0000 37.5000 L 75.0000 37.5000 C 81.9038 37.5000 87.5000 43.0962 87.5000 50.0000 L 87.5000 50.0000 C 87.5000 56.9038 81.9038 62.5000 75.0000 62.5000 L 75.0000 62.5000 C 68.0962 62.5000 62.5000 56.9038 62.5000 50.0000 L 62.5000 50.0000 C 62.5000 43.0962 68.0962 37.5000 75.0000 37.5000 Z"
+                    android:fillColor="#FF000000"/>
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="left_eye_group">
+        <aapt:attr name="android:animation">
+            <set android:ordering="sequentially">
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="500"
+                    android:valueFrom="0"
+                    android:valueTo="10"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="1000"
+                    android:valueFrom="10"
+                    android:valueTo="10"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/linear"/>
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="200"
+                    android:valueFrom="10"
+                    android:valueTo="0"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="right_eye_group">
+        <aapt:attr name="android:animation">
+            <set android:ordering="sequentially">
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="500"
+                    android:valueFrom="0"
+                    android:valueTo="10"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="1000"
+                    android:valueFrom="10"
+                    android:valueTo="10"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/linear"/>
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:duration="200"
+                    android:valueFrom="10"
+                    android:valueTo="0"
+                    android:valueType="floatType"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>
